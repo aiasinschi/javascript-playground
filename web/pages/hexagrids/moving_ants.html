@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="../../library/hex.utils.js"></script>
+	<script type="text/javascript" src="../../library/hexagonal.map.js"></script>
+	<script type="text/javascript" src="../../library/color.transform.js"></script>
+</head>
+<body>
+<div class="canvas">
+	<canvas id="myCanvas" width="800" height="800"></canvas>
+</div>
+<div style="float: left;">
+	<button id="pause" onclick="pauseAnimation();">Start animation</button>
+	<div>Clicked X:
+		<div id="selectedX"></div>
+	</div>
+	<div>Clicked Y:
+		<div id="selectedY"></div>
+	</div>
+	<div>Colour:
+		<div id="clickedColour"></div>
+	</div>
+	<div>Neigbours:
+		<div id="neighbours"></div>
+	</div>
+</div>
+<script type='text/javascript'>
+
+	var canvas = document.getElementById('myCanvas');
+
+	//var blobRadius = 8;
+	var timerDelay = 10;
+	var radius = 8;
+
+	var selectedX = 0;
+	var selectedY = 0;
+
+
+	var MSizeX = Math.floor(1.2 * document.getElementById('myCanvas').width / (2 * radius));
+	var MSizeY = Math.floor(1.2 * document.getElementById('myCanvas').height / (2 * radius));
+
+	var paused = true;
+
+
+	/***
+	 const ABSOLUTE = 0;
+	 const SEPARATE = 1;
+	 const CFOCUSED = 2;
+	 const GAMELIFE = 3;
+
+	 var useMethod = 3;
+	 ***/
+	/** 2, 3, 3 for the classic square grid **/
+	/** 1.5, 2.25, 2 for a non convergent situation **/
+	/**
+	 var starvationLimit = 2;
+	 var overpopulationLimit = 3;
+	 var birthLimit = 3;
+	 ***/
+
+	const LEFT_T = 0;
+	const RIGHT_T = 1;
+	const RANDOM_T = 2;
+
+
+	var Ants = new Array();
+
+	function Ant(px, py, dir, col, t, maxl) {
+
+		this.posX = px;
+		this.posY = py;
+		this.direction = dir;
+		this.color = col;
+		this.type = t;
+		this.lineLength = 0;
+		this.maxLength = maxl;
+
+		this.move = function () {
+			if (console) {
+				console.log('posX: ' + this.posX + ' posY: ' + this.posY + ' direction: ' + this.direction + ' line length: ' + this.lineLength);
+			}
+			var posX = this.posX;
+			var posY = this.posY;
+			if (HexagonalMap.getVal(posX, posY) === 0) {
+				HexagonalMap.setMapColorAt(posX, posY, this.color);
+				this.lineLength++;
+			} else {
+				HexagonalMap.setMapColorAt(posX, posY, '#000000');
+			}
+			HexagonalMap.drawCellContour(posX, posY);
+			var newPX, newPY;
+			switch (this.direction) {
+				case 0:
+					newPX = posX - 1;
+					if (posX % 2 !== 0) {
+						newPY = posY;
+					} else {
+						newPY = posY - 1;
+					}
+					break;
+				case 1:
+					newPX = posX;
+					newPY = posY - 1;
+					break;
+				case 2:
+					newPX = posX + 1;
+					if (posX % 2 !== 0) {
+						newPY = posY;
+					} else {
+						newPY = posY - 1;
+					}
+					break;
+				case 3:
+					if (posX % 2 !== 0) {
+						newPX = posX + 1;
+						newPY = posY + 1;
+					} else {
+						newPX = posX + 1;
+						newPY = posY;
+					}
+					break;
+				case 4:
+					newPX = posX;
+					newPY = posY + 1;
+					break;
+				case 5:
+					if (posX % 2 !== 0) {
+						newPX = posX - 1;
+						newPY = posY + 1;
+					} else {
+						newPX = posX - 1;
+						newPY = posY;
+					}
+					break;
+				default:
+					break;
+			}
+			if ((newPX < 0) || (newPY < 0) || (newPX > MSizeX - 1) || (newPY > MSizeY - 1)) {
+				/*this.direction = (this.direction + 3) % 6;
+				 if ((newPX < 0) && (newPY < 0)) {
+				 this.direction = 3;
+				 }
+				 if ((newPX < 0) && (newPY > MSizeY - 1)) {
+				 this.direction = 2;
+				 }
+				 if ((newPX > MSizeX - 1) && (newPY < 0)) {
+				 this.direction = 5;
+				 }
+				 if ((newPX > MSizeX - 1) && (newPY > MSizeY - 1)) {
+				 this.direction = 0;
+				 }*/
+				this.posX = (newPX + MSizeX) % MSizeX;
+				this.posY = (newPY + MSizeY) % MSizeY;
+				this.computeDirection();
+				this.lineLength = 0;
+			} else {
+				this.posX = newPX;
+				this.posY = newPY;
+				if (this.lineLength == this.maxLength) {
+					this.lineLength = 0;
+					this.computeDirection();
+				}
+			}
+		}
+
+		this.computeDirection = function () {
+			switch (this.type) {
+				case LEFT_T:
+					this.direction = ((this.direction - 1) + 6) % 6;
+					break;
+				case RIGHT_T:
+					this.direction = (this.direction + 1) % 6;
+					break;
+				case RANDOM_T:
+					this.direction = Math.floor(Math.random() * 6);
+					break;
+			}
+		}
+
+	}
+	;
+
+
+	HexagonalMap.init({
+		'canvas': canvas,
+		'MSizeX': MSizeX,
+		'MSizeY': MSizeY,
+		'radius': radius,
+		'showContours': true,
+	});
+	HexagonalMap.initMap();
+
+	Ants.push(new Ant(12, 12, 0, '#0044FF', LEFT_T, 4));
+	Ants.push(new Ant(14, 14, 3, '#00FF44', RIGHT_T, 3));
+	//Ants.push(new Ant(30, 30, 2, '#0066FF', RANDOM_T));
+	// draw map
+	HexagonalMap.drawMapI(MSizeX, MSizeY);
+
+
+	// Timer stuff
+	var myVar = setInterval(
+			function () {
+				if (!paused) {
+					moveAnts();
+				}
+			}, timerDelay);
+
+
+	canvas.addEventListener('mousedown', function (evt) {
+		var mousePos = HexagonalMap.getMousePos(canvas, evt);
+		var mapPos = HexagonalMap.getMapPos(mousePos);
+
+		selectedX = mapPos.x;
+		selectedY = mapPos.y;
+
+		document.getElementById("selectedX").innerHTML = selectedX.toString();
+		document.getElementById("selectedY").innerHTML = selectedY.toString();
+		document.getElementById("clickedColour").innerHTML = HexagonalMap.getMapColorAt(selectedX, selectedY);
+		document.getElementById("neighbours").innerHTML = HexagonalMap.getNeighbours(selectedX, selectedY);
+		HexagonalMap.setMapColorAt(selectedX, selectedY, '#1188AA');
+		HexagonalMap.drawCell(selectedX, selectedY);
+	}, false);
+
+	function applyMapChanges(arrayOfColors) {
+		switch (useMethod) {
+			case ABSOLUTE:
+				return ColorTransform.classicAverage(arrayOfColors);
+			case SEPARATE:
+				return ColorTransform.separateAverage(arrayOfColors);
+			case CFOCUSED:
+				return ColorTransform.centerFocusedAverage(arrayOfColors);
+			case GAMELIFE:
+				return ColorTransform.gameOfLife(arrayOfColors);
+			case CONSENSUS:
+				return ColorTransform.consensusAverage(arrayOfColors);
+			default:
+				return ColorTransform.gameOfLife(arrayOfColors);
+		}
+	}
+
+	function initColors() {
+		HexagonalMap.placeColor(Math.floor(MSizeX / 3), Math.floor(MSizeY / 3), blobRadius / 2, "#2244FF");
+		HexagonalMap.placeColor(Math.floor(2 * MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius / 2, "#FF4422");
+		HexagonalMap.placeColor(Math.floor(2 * MSizeX / 3), Math.floor(MSizeY / 3), blobRadius / 2, "#22FF00");
+		HexagonalMap.placeColor(Math.floor(MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius / 2, "#AF04A2");
+		HexagonalMap.placeColor(Math.floor(MSizeX / 2), Math.floor(MSizeY / 2), blobRadius / 1, "#11A1F1");
+
+		/*				placeColor(Math.floor(MSizeX / 3), Math.floor(MSizeY / 3), blobRadius, "#00FF00" );
+		 placeColor(Math.floor(2 * MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius, "#00FF00" );
+		 placeColor(Math.floor(2 * MSizeX / 3), Math.floor(MSizeY / 3), blobRadius, "#00FF00" );
+		 placeColor(Math.floor(MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius, "#00FF00" );
+		 placeColor(Math.floor(MSizeX / 2), Math.floor(MSizeY / 2), blobRadius / 2, "#FFFFFF" );
+		 */
+	}
+
+
+	// do stuff here
+	function pauseAnimation() {
+		paused = !paused;
+		document.getElementById('pause').innerHTML = paused ? 'Start animation' : 'Pause animation';
+	}
+
+	function moveAnts() {
+		for (var i = 0; i < Ants.length; i++) {
+			Ants[i].move();
+		}
+	}
+</script>
+</body>
+</html>

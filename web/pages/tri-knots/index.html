@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../../library/base_objects.js" ></script>
+		<script src="../../library/hex.utils.js" ></script>
+	</head>	
+	<body>
+		<select id='drawingNumberSelect'>
+			<option value="0">Base tiling</option>
+			<option value="1">Level 1 node - basic</option>
+			<option value="2">Level 2 node - complex</option>
+			<option value="3">Level 3 node - very complex</option>
+			<option value="4">Modified Line</option>
+			<option value="5">Filled circle</option>
+			<option value="6">Filled cardioid</option>
+			<option value="7">Filled reverse cardioid</option>
+			<option value="8">Filled Astroid</option>
+			<option value="9" selected>Filled Bernoulli Lemniscate</option>
+		</select>		
+		<button onclick="drawSomething();">Draw Something</button>
+		<button onclick="clearDrawing();">Clear</button>
+		<br/> <br/>
+		<canvas id='canvas' width=700 height=700 style='background-color: #00020F; border:5px solid #000107; border-radius: 10px;'></canvas>
+	</body>
+</html>

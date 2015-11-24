@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="../../library/hex.utils.js"></script>
+		<script type="text/javascript" src="../../library/hexagonal.map.js"></script>
+		<script type="text/javascript" src="../../library/color.transform.js"></script>
+</head>
+<body>
+<div class = "canvas">
+           <canvas id="myCanvas" width="700" height="700"></canvas>
+</div>
+<div style="float: left;">
+		<button id="pause" onclick="pauseAnimation();">Start animation</button>
+		<div>Clicked X:
+				<div id="selectedX"></div>
+		</div>
+		<div>Clicked Y:
+				<div id="selectedY"></div>
+        </div>
+		<div>Colour:
+		        <div id="clickedColour"></div>
+		</div>
+		<div>Neigbours:
+		        <div id="neighbours"></div>
+		</div>
+</div>
+  <script type='text/javascript'>
+  
+  var canvas = document.getElementById('myCanvas');
+	
+	var blobRadius = 8;
+	var timerDelay = 10;
+	
+ 	var selectedX = 0;
+	var selectedY = 0;
+
+	var radius = 16;
+  
+
+	var MSizeX = Math.floor(1.2 * document.getElementById('myCanvas').width / (2 * radius));
+	var MSizeY = Math.floor(1.2 * document.getElementById('myCanvas').height / (2 * radius));
+
+	var paused = true;
+	
+	const ABSOLUTE = 0;
+	const SEPARATE = 1;
+	const CFOCUSED = 2;
+	const GAMELIFE = 3;
+	
+	var useMethod = 3;
+	/** 2, 3, 3 for the classic square grid **/
+  /** 1.5, 2.25, 2 for a non convergent situation **/
+	var starvationLimit = 2;
+	var overpopulationLimit = 3;
+	var birthLimit = 3;
+	
+	HexagonalMap.init({
+								'canvas': canvas,
+								'MSizeX': MSizeX,
+								'MSizeY': MSizeY,
+								'radius': radius,
+								'showContours': true,
+								});
+  HexagonalMap.initMap();
+	initColors();
+	// draw map
+	HexagonalMap.drawMapI(MSizeX,MSizeY);
+	
+	
+	// Timer stuff
+	var myVar=setInterval(
+		function(){
+		        if (! paused) {
+				propagate();
+			}			
+		},	timerDelay);
+	
+	
+	
+	canvas.addEventListener('mousedown', function(evt) {
+   		var mousePos = HexagonalMap.getMousePos(canvas, evt);
+		var mapPos = HexagonalMap.getMapPos(mousePos);
+		
+    	selectedX = mapPos.x;
+		selectedY = mapPos.y;
+		
+		document.getElementById("selectedX").innerHTML = selectedX.toString();
+		document.getElementById("selectedY").innerHTML = selectedY.toString();
+		document.getElementById("clickedColour").innerHTML = HexagonalMap.getMapColorAt(selectedX, selectedY);
+		document.getElementById("neighbours").innerHTML = HexagonalMap.getNeighbours(selectedX, selectedY);
+		HexagonalMap.setMapColorAt(selectedX, selectedY,'#1188AA');
+    	HexagonalMap.drawCell(selectedX, selectedY);
+      }, false);
+	
+
+	var selectedCell = {x: 0, y: 0, color: '#000000'};
+	var hoverColor = '#FFFFFF';
+
+	canvas.addEventListener('mousemove', function(evt) {
+   		var mousePos = HexagonalMap.getMousePos(canvas, evt);
+		var mapPos = HexagonalMap.getMapPos(mousePos);
+		
+    	selectedX = mapPos.x;
+		selectedY = mapPos.y;
+		
+		if ((selectedCell.x == selectedX) && (selectedCell.y == selectedY))
+			return;
+
+/*		document.getElementById("selectedX").innerHTML = selectedX.toString();
+		document.getElementById("selectedY").innerHTML = selectedY.toString();
+		document.getElementById("clickedColour").innerHTML = HexagonalMap.getMapColorAt(selectedX, selectedY);
+		document.getElementById("neighbours").innerHTML = HexagonalMap.getNeighbours(selectedX, selectedY);
+*/		
+		if (HexagonalMap.contains(selectedCell.x, selectedCell.y)){
+			HexagonalMap.setMapColorAt(selectedCell.x, selectedCell.y, selectedCell.color);
+    		HexagonalMap.drawCell(selectedCell.x, selectedCell.y);
+    	}
+    	if (HexagonalMap.contains(selectedX, selectedY)){
+    		selectedCell.x = selectedX;
+    		selectedCell.y = selectedY;
+			selectedCell.color = HexagonalMap.getMapColorAt(selectedX, selectedY);
+			HexagonalMap.setMapColorAt(selectedX, selectedY, hoverColor);
+    		HexagonalMap.drawCell(selectedX, selectedY);
+    	}
+      }, false);
+
+
+	function applyMapChanges(arrayOfColors) {
+								switch (useMethod){
+																case ABSOLUTE: return ColorTransform.classicAverage(arrayOfColors); 
+																case SEPARATE: return ColorTransform.separateAverage(arrayOfColors);
+																case CFOCUSED: return ColorTransform.centerFocusedAverage(arrayOfColors);
+																case GAMELIFE: return ColorTransform.gameOfLife(arrayOfColors);
+																case CONSENSUS: return ColorTransform.consensusAverage(arrayOfColors);
+																default: return ColorTransform.gameOfLife(arrayOfColors);
+								}
+	}
+
+	function initColors() {
+				HexagonalMap.placeColor(Math.floor(MSizeX / 3), Math.floor(MSizeY / 3), blobRadius/2, "#2244FF" );
+				HexagonalMap.placeColor(Math.floor(2 * MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius/2, "#FF4422" );
+				HexagonalMap.placeColor(Math.floor(2 * MSizeX / 3), Math.floor(MSizeY / 3), blobRadius/2, "#22FF00" );
+				HexagonalMap.placeColor(Math.floor(MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius/2, "#AF04A2" );	
+				HexagonalMap.placeColor(Math.floor(MSizeX / 2), Math.floor(MSizeY / 2), blobRadius / 1, "#11A1F1" );
+
+/*				placeColor(Math.floor(MSizeX / 3), Math.floor(MSizeY / 3), blobRadius, "#00FF00" );
+				placeColor(Math.floor(2 * MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius, "#00FF00" );
+				placeColor(Math.floor(2 * MSizeX / 3), Math.floor(MSizeY / 3), blobRadius, "#00FF00" );
+				placeColor(Math.floor(MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius, "#00FF00" );
+				placeColor(Math.floor(MSizeX / 2), Math.floor(MSizeY / 2), blobRadius / 2, "#FFFFFF" );
+*/
+	}
+			
+
+	
+        // do stuff here
+	function pauseAnimation(){
+		paused = !paused;
+		document.getElementById('pause').innerHTML = paused ? 'Start animation' : 'Pause animation';
+	}
+	
+    function propagate() {
+				var newMap = new Array();
+				for (var i = 0; i < MSizeX; i++) {
+								newMap[i] = new Array(MSizeY);
+				}
+				for (var i = 0; i < MSizeX; i++){
+								for (var j = 0; j < MSizeY; j++){
+												var arrayOfColors = HexagonalMap.getNeighbours(i, j);
+												newMap[i][j] = applyMapChanges(arrayOfColors);
+								}
+				}
+				HexagonalMap.Map = newMap;
+				HexagonalMap.drawMapI(MSizeX, MSizeY);
+    }
+	</script>
+</body>
+</html>
