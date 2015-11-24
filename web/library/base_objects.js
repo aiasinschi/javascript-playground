@@ -364,7 +364,7 @@ var clearDrawing = function() {
 	canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
 }
 
-var drawSomething = function() {
+var drawCelticKnots = function() {
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext("2d");
 	context.clearRect(0, 0, canvas.width, canvas.height);
@@ -493,37 +493,53 @@ var drawSomething = function() {
 			tiling[k].draw(context);
 		}
 		break;
-	case 4:
-		var P1 = createPoint(100, 100);
-		var P2 = createPoint(100, 300);
-		var P3 = createPoint(300, 300);
-		var P4 = createPoint(300, 100);
-		context.strokeStyle = "#99EEFF";
-		drawModifiedLine(P1, P2, context);
-		drawModifiedLine(P2, P3, context);
-		drawModifiedLine(P3, P4, context);
-		drawModifiedLine(P4, P1, context);
-		break;
-	case 5:
-		var O = createPoint(300, 300);
-		drawParametricCurve(circleFunction, O, 100, "#FF1111", context, true);
-		break;
-	case 6:
-		var O = createPoint(300, 300);
-		drawParametricCurve(cardioidFunction, O, 100, "#FF1111", context, true);
-		break;
-	case 7:
-		var O = createPoint(300, 300);
-		drawParametricCurve(reverseCardioidFunction, O, 100, "#FF1111", context, true);
-		break;
-	case 8:
-		var O = createPoint(300, 300);
-		drawParametricCurve(astroidFunction, O, 100, "#1122FF", context, true);
-		break;
-	case 9:
-		var O = createPoint(300, 300);
-		drawParametricCurve(bernoulliLemniscateFunction, O, 100, "#1122FF", context, true);
-		break;
+	}
+}
+
+
+var drawCurves = function() {
+	var canvas = document.getElementById("canvas");
+	var context = canvas.getContext("2d");
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.beginPath();
+	context.strokeStyle = '#FF9944';
+	context.lineWidth = ApplicationConstants.STROKE_WIDTH;
+	var side = ApplicationConstants.CIRCLE_RADIUS
+		* ApplicationConstants.SIDE_TO_RADIUS_RATIO;
+	var radius = ApplicationConstants.CIRCLE_RADIUS;
+	var drawingNumber = parseInt(document.getElementById('drawingCurvesSelect').value);
+	switch (drawingNumber) {
+		case 0:
+			var P1 = createPoint(100, 100);
+			var P2 = createPoint(100, 300);
+			var P3 = createPoint(300, 300);
+			var P4 = createPoint(300, 100);
+			context.strokeStyle = "#99EEFF";
+			drawModifiedLine(P1, P2, context);
+			drawModifiedLine(P2, P3, context);
+			drawModifiedLine(P3, P4, context);
+			drawModifiedLine(P4, P1, context);
+			break;
+		case 1:
+			var O = createPoint(300, 300);
+			drawParametricCurve(circleFunction, O, 100, "#FF1111", context, true);
+			break;
+		case 2:
+			var O = createPoint(300, 300);
+			drawParametricCurve(cardioidFunction, O, 100, "#FF1111", context, true);
+			break;
+		case 3:
+			var O = createPoint(300, 300);
+			drawParametricCurve(reverseCardioidFunction, O, 100, "#FF1111", context, true);
+			break;
+		case 4:
+			var O = createPoint(300, 300);
+			drawParametricCurve(astroidFunction, O, 100, "#1122FF", context, true);
+			break;
+		case 5:
+			var O = createPoint(300, 300);
+			drawParametricCurve(bernoulliLemniscateFunction, O, 100, "#119922", context, true);
+			break;
 
 	}
 }
