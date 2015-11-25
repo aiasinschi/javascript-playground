@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="../../library/app.constants.js" ></script>
+
+	<script src="../../library/geom.point.js" ></script>
+
+	<script src="../../library/geom.curves.js" ></script>
+
+	<script src="../../library/hex.utils.js" ></script>
+</head>
+<body>
+<label for="drawingCurvesSelect">Select curve</label>
+<select id='drawingCurvesSelect'>
+	<option value="0">Modified Line</option>
+	<option value="1">Filled circle</option>
+	<option value="2">Filled cardioid</option>
+	<option value="3">Filled reverse cardioid</option>
+	<option value="4">Filled Astroid</option>
+	<option value="5" selected>Filled Bernoulli Lemniscate</option>
+</select>
+<button onclick="drawCurves();">Draw Curves</button>
+<br/><br/>
+<canvas id='canvas' width=700 height=700 style='background-color: #00020F; border:5px solid #000107; border-radius: 10px;'></canvas>
+</body>
+</html>
