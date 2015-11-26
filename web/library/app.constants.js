@@ -11,4 +11,4 @@ var ApplicationConstants = ApplicationConstants || {
 	SIDE_TO_RADIUS_RATIO : Math.sqrt(3),
 	HOFFSET : 10,
 	VOFFSET : 10
-};
+}

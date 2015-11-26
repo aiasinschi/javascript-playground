@@ -9,7 +9,7 @@ var HexUtils = HexUtils || {};
 	/*  Hex to int conversion */	
 	HexUtils.hexToInt = function (hex){
 		var arr = HexUtils.hexToByteArray(hex);
-		return HexUtils.hexToByte(arr[0]) * 256* 256 + HexUtils.hexToByte(arr[1]) * 256 + HexUtils.hexToByte(arr[2]);
+		return arr[0] * 256* 256 + arr[1] * 256 + arr[2];
 	}
 	
 	HexUtils.hexToByteArray = function(hex){

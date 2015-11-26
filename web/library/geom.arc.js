@@ -1,12 +1,12 @@
 var Arc = Arc
 	|| {
-		center : null,
-		startAngle : 0,
-		endAngle : 0,
-		radius : 0,
-		INCREMENT : 0.1,
+		center: null,
+		startAngle: 0,
+		endAngle: 0,
+		radius: 0,
+		INCREMENT: 0.1,
 
-		draw : function(g) {
+		draw: function (g) {
 			var angle = this.startAngle;
 			var start = this.pointOnArc(this.startAngle);
 			g.moveTo(start.getViewX(), start.getViewY());
@@ -19,14 +19,14 @@ var Arc = Arc
 			g.stroke();
 		},
 
-		pointOnArc : function(angle) {
+		pointOnArc: function (angle) {
 			var _this = this;
-			return createPoint(_this.center.x + _this.radius
+			return Point.createPoint(_this.center.x + _this.radius
 				* Math.cos(angle * Math.PI / 180), _this.center.y
 				+ _this.radius * Math.sin(angle * Math.PI / 180));
 		},
 
-		intersectAngle : function(arc) {
+		intersectAngle: function (arc) {
 			var alpha = this.startAngle;
 			var beta = this.endAngle;
 			var angle = (alpha + beta) / 2;
@@ -45,17 +45,17 @@ var Arc = Arc
 				}
 			}
 			return angle;
-		}
-	}
+		},
 
-var createArc = function(center, radius, startAngle, endAngle) {
-	var arc = Object.create(Arc);
-	arc.center = center;
-	arc.startAngle = startAngle;
-	arc.endAngle = endAngle;
-	arc.radius = radius;
-	arc.INCREMENT = ApplicationConstants.STROKE_WIDTH * 180
-		/ (Math.PI * radius);
-	return arc;
-}
+		createArc: function (center, radius, startAngle, endAngle) {
+			var arc = Object.create(Arc);
+			arc.center = center;
+			arc.startAngle = startAngle;
+			arc.endAngle = endAngle;
+			arc.radius = radius;
+			arc.INCREMENT = ApplicationConstants.STROKE_WIDTH * 180
+				/ (Math.PI * radius);
+			return arc;
+		}
+	};
 

@@ -1,29 +1,29 @@
 var Triangle = Triangle
 	|| {
-		center : null,
-		radius : 0,
-		startingAngle : 0,
-		topDown : false,
-		A : null,
-		B : null,
-		C : null,
-		innerA : null,
-		outerA : null,
-		innerB : null,
-		outerB : null,
-		innerC : null,
-		outerC : null,
+		center: null,
+		radius: 0,
+		startingAngle: 0,
+		topDown: false,
+		A: null,
+		B: null,
+		C: null,
+		innerA: null,
+		outerA: null,
+		innerB: null,
+		outerB: null,
+		innerC: null,
+		outerC: null,
 
-		closed : 0,
+		closed: 0,
 
-		getPointAtAngle : function(angle) {
+		getPointAtAngle: function (angle) {
 			var _this = this;
-			return createPoint(_this.center.x + _this.radius
+			return Point.createPoint(_this.center.x + _this.radius
 				* Math.cos(_this.startingAngle + angle), _this.center.y
 				+ _this.radius * Math.sin(_this.startingAngle + angle));
 		},
 
-		draw : function(g) {
+		draw: function (g) {
 			if (ApplicationConstants.LABELS_ON) {
 				g.strokeText("A", this.A.getViewX(), this.A.getViewY());
 				g.drawString("B", this.B.getViewX(), this.B.getViewY());
@@ -37,7 +37,8 @@ var Triangle = Triangle
 			}
 
 			switch (this.closed) {
-				case 0: {
+				case 0:
+				{
 					this.doIntersections(this.innerA, this.innerB, this.outerB,
 						this.innerC, this.outerC, g);
 					this.doIntersections(this.outerA, this.innerB, this.outerB,
@@ -69,7 +70,7 @@ var Triangle = Triangle
 			}
 		},
 
-		doIntersections : function(toDraw, intersOne, intersTwo,
+		doIntersections: function (toDraw, intersOne, intersTwo,
 								   intersThree, intersFour, g) {
 			var ret = [];
 			ret.push(toDraw.intersectAngle(intersOne));
@@ -77,59 +78,61 @@ var Triangle = Triangle
 			ret.push(toDraw.intersectAngle(intersThree));
 			ret.push(toDraw.intersectAngle(intersFour));
 			ret.sort();
-			var firstPart = createArc(toDraw.center, toDraw.radius,
+			var firstPart = Arc.createArc(toDraw.center, toDraw.radius,
 				toDraw.startAngle, ret[2]);
-			var secondPart = createArc(toDraw.center, toDraw.radius,
+			var secondPart = Arc.createArc(toDraw.center, toDraw.radius,
 				ret[3], toDraw.endAngle);
 			firstPart.draw(g);
 			secondPart.draw(g);
 		},
 
-		doLoop : function(firstArc, secondArc, g) {
+		doLoop: function (firstArc, secondArc, g) {
 			var angle = firstArc.intersectAngle(secondArc);
-			var firstPart = createArc(firstArc.center, firstArc.radius,
+			var firstPart = Arc.createArc(firstArc.center, firstArc.radius,
 				firstArc.startAngle, angle);
 			angle = secondArc.intersectAngle(firstArc);
-			var secondPart = createArc(secondArc.center, secondArc.radius,
+			var secondPart = Arc.createArc(secondArc.center, secondArc.radius,
 				angle, secondArc.endAngle);
 			firstPart.draw(g);
 			secondPart.draw(g);
 		},
 
-		close : function(closed) {
+		close: function (closed) {
 			this.closed = closed;
+		},
+
+		createTriangle: function (center, radius, topDown) {
+			var t = Object.create(Triangle);
+			t.center = center;
+			t.radius = radius;
+			t.startingAngle = topDown ? Math.PI / 6 : Math.PI / 2;
+			t.topDown = topDown;
+			t.A = t.getPointAtAngle(0);
+			t.B = t.getPointAtAngle(Math.PI * 2 / 3);
+			t.C = t.getPointAtAngle(Math.PI * 4 / 3);
+
+			var startAt = topDown ? 180 : 240;
+
+			t.innerA = Arc.createArc(t.A, radius * ApplicationConstants.SMALL_FACTOR,
+				startAt, (startAt + 60));
+			t.outerA = Arc.createArc(t.A, radius * ApplicationConstants.LARGE_FACTOR,
+				startAt, (startAt + 60));
+
+			startAt = (startAt + 120);
+			t.innerB = Arc.createArc(t.B, radius * ApplicationConstants.SMALL_FACTOR,
+				startAt, (startAt + 60));
+			t.outerB = Arc.createArc(t.B, radius * ApplicationConstants.LARGE_FACTOR,
+				startAt, (startAt + 60));
+
+			startAt = (startAt + 120);
+			t.innerC = Arc.createArc(t.C, radius * ApplicationConstants.SMALL_FACTOR,
+				startAt, (startAt + 60));
+			t.outerC = Arc.createArc(t.C, radius * ApplicationConstants.LARGE_FACTOR,
+				startAt, (startAt + 60));
+
+			return t;
 		}
+
 
 	}
 
-var createTriangle = function(center, radius, topDown) {
-	var t = Object.create(Triangle);
-	t.center = center;
-	t.radius = radius;
-	t.startingAngle = topDown ? Math.PI / 6 : Math.PI / 2;
-	t.topDown = topDown;
-	t.A = t.getPointAtAngle(0);
-	t.B = t.getPointAtAngle(Math.PI * 2 / 3);
-	t.C = t.getPointAtAngle(Math.PI * 4 / 3);
-
-	var startAt = topDown ? 180 : 240;
-
-	t.innerA = createArc(t.A, radius * ApplicationConstants.SMALL_FACTOR,
-		startAt, (startAt + 60));
-	t.outerA = createArc(t.A, radius * ApplicationConstants.LARGE_FACTOR,
-		startAt, (startAt + 60));
-
-	startAt = (startAt + 120);
-	t.innerB = createArc(t.B, radius * ApplicationConstants.SMALL_FACTOR,
-		startAt, (startAt + 60));
-	t.outerB = createArc(t.B, radius * ApplicationConstants.LARGE_FACTOR,
-		startAt, (startAt + 60));
-
-	startAt = (startAt + 120);
-	t.innerC = createArc(t.C, radius * ApplicationConstants.SMALL_FACTOR,
-		startAt, (startAt + 60));
-	t.outerC = createArc(t.C, radius * ApplicationConstants.LARGE_FACTOR,
-		startAt, (startAt + 60));
-
-	return t;
-}

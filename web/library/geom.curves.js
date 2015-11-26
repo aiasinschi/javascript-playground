@@ -31,11 +31,11 @@ var drawModifiedLine = function(A, B, context) {
 
 
 var circleFunction = function(center, radius, t){
-	return createPoint(center.x + radius * Math.cos(t), center.y + radius * Math.sin(t));
+	return Point.createPoint(center.x + radius * Math.cos(t), center.y + radius * Math.sin(t));
 }
 
 var cardioidFunction = function(center, radius, t){
-	return createPoint(
+	return Point.createPoint(
 		center.x + radius * ( Math.cos(t) - Math.cos(2 * t) / 2 ),
 		center.y + radius * ( Math.sin(t) - Math.sin(2 * t) / 2 )
 	);
@@ -43,24 +43,60 @@ var cardioidFunction = function(center, radius, t){
 
 var reverseCardioidFunction = function(center, radius, t){
 	var normalCardio = cardioidFunction(center, radius, t);
-	return createPoint(
+	return Point.createPoint(
 		normalCardio.y,
 		normalCardio.x
 	);
 }
 
+var modifiedCardioidFunction = function(center, radius, t){
+	return Point.createPoint(
+		center.x + radius * ( Math.cos(t) - Math.cos(2 * t) / 2 + Math.sin(40 * t) / 40 ),
+		center.y + radius * ( Math.sin(t) - Math.sin(2 * t) / 2 + Math.sin(40 * t) / 40 )
+	);
+}
+
 var astroidFunction = function(center, radius, t){
-	return createPoint(
+	return Point.createPoint(
 		center.x + radius * Math.pow( Math.cos(t), 3 ),
 		center.y + radius * Math.pow( Math.sin(t), 3 )
 	);
 }
 
 var bernoulliLemniscateFunction = function(center, radius, t){
-	return createPoint(
+	return Point.createPoint(
 		center.x + radius * Math.sqrt(Math.abs(Math.cos(2 * t))) * Math.cos(t),
 		center.y + radius * Math.sqrt(Math.abs(Math.cos(2 * t))) * Math.sin(t)
 	);
+}
+
+var zigguratCardioid = function(center, radius, t){
+	return Point.createPoint(
+		center.x + radius * ( Math.cos(t) - Math.cos(2 * t) / 2 + 0.02 * rectangularSin(18 * t, 0.01) ),
+		center.y + radius * ( Math.sin(t) - Math.sin(2 * t) / 2 + 0.02 * rectangularSin(18 * t, 0.01) )
+	);
+}
+
+var gearedBernoulliLemniscateFunction = function(center, radius, t){
+	return Point.createPoint(
+		center.x + radius * ( Math.sqrt(Math.abs(Math.cos(4 * t))) * Math.cos(t) + 0.01 * rectangularSin(18 * t, 0.01) ),
+		center.y + radius * ( Math.sqrt(Math.abs(Math.cos(4 * t))) * Math.sin(t) + 0.01 * rectangularSin(18 * t, 0.01) )
+	);
+}
+
+var rectangularSin = function(xx, epsilon){
+	var x = xx - 2 * Math.floor(xx / 2);
+	if (x < epsilon){
+		return x / epsilon;
+	} else if (x < 1 - epsilon) {
+		return 1;
+	} else if (x < 1 + epsilon) {
+		return (1 - x) / epsilon;
+	} else if (x < 2 - epsilon){
+		return -1;
+	} else {
+		return (x - 2) / epsilon;
+	}
 }
 
 var drawParametricCurve = function(curveCalculator, center, initialRadius, initialColor, context, darken) {
@@ -83,13 +119,13 @@ var drawParametricCurve = function(curveCalculator, center, initialRadius, initi
 		context.strokeStyle = color;
 		context.stroke();
 		context.closePath();
-		radius = radius - ApplicationConstants.STROKE_WIDTH / 2;
-		color = HexUtils.modifyByPercent(color, colorModifier);
+		radius = radius - ApplicationConstants.STROKE_WIDTH / 4.5;
+		color = HexUtils.modifyByPercent(color, colorModifier / 6);
 	}
 }
 
-var A = createPoint(100, 100);
-var B = createPoint(200, 200);
+var A = Point.createPoint(100, 100);
+var B = Point.createPoint(200, 200);
 
 var clearDrawing = function() {
 	var canvas = document.getElementById("canvas");
@@ -107,13 +143,13 @@ var drawCurves = function() {
 		* ApplicationConstants.SIDE_TO_RADIUS_RATIO;
 	var radius = ApplicationConstants.CIRCLE_RADIUS;
 	var drawingNumber = parseInt(document.getElementById('drawingCurvesSelect').value);
-	var O = createPoint(300, 300);
+	var O = Point.createPoint(300, 300);
 	switch (drawingNumber) {
 		case 0:
-			var P1 = createPoint(100, 100);
-			var P2 = createPoint(100, 300);
-			var P3 = createPoint(300, 300);
-			var P4 = createPoint(300, 100);
+			var P1 = Point.createPoint(100, 100);
+			var P2 = Point.createPoint(100, 300);
+			var P3 = Point.createPoint(300, 300);
+			var P4 = Point.createPoint(300, 100);
 			context.strokeStyle = "#99EEFF";
 			drawModifiedLine(P1, P2, context);
 			drawModifiedLine(P2, P3, context);
@@ -135,6 +171,23 @@ var drawCurves = function() {
 		case 5:
 			drawParametricCurve(bernoulliLemniscateFunction, O, 100, "#119922", context, true);
 			break;
-
+		case 6:
+			var dents = 30;
+			var dentFactor = 15;
+			var G = Gear.createGear(O, radius, dents, dentFactor);
+			G.draw(context);
+			G = Gear.createGear(Point.createPoint(400, 400), radius * 1.5, dents * 1.4 , dentFactor);
+			G.draw(context);
+			break;
+		case 7:
+			drawParametricCurve(modifiedCardioidFunction, O, 100, "#DDDFEA", context, true);
+			break;
+		case 8:
+			drawParametricCurve(zigguratCardioid, O, 100, "#11DFEA", context, true);
+			break;
+		case 9:
+			drawParametricCurve(gearedBernoulliLemniscateFunction, O, 200, "#FD9F3A", context, true);
+			drawParametricCurve(gearedBernoulliLemniscateFunction, O, 100, "#FD9F5A", context, true);
+			break;
 	}
 }

@@ -1,19 +1,19 @@
 var getTile = function(i, j, side, radius, closed) {
 	var orig;
 	if (i % 2 == 0) {
-		orig = createPoint(ApplicationConstants.HOFFSET
+		orig = Point.createPoint(ApplicationConstants.HOFFSET
 			+ (j % 2 == 0 ? side / 2 : side) + side * Math.floor(j / 2),
 			ApplicationConstants.VOFFSET
 			+ (j % 2 == 0 ? radius : radius / 2) + 3 * radius
 			* Math.floor(i / 2));
 	} else {
-		orig = createPoint(ApplicationConstants.HOFFSET
+		orig = Point.createPoint(ApplicationConstants.HOFFSET
 			+ (j % 2 == 0 ? side / 2 : side) + side * Math.floor(j / 2),
 			ApplicationConstants.VOFFSET
 			+ (j % 2 == 0 ? 2 * radius : 2.5 * radius) + 3 * radius
 			* Math.floor(i / 2));
 	}
-	var ret = createTriangle(orig, radius, (i + j) % 2 == 0);
+	var ret = Triangle.createTriangle(orig, radius, (i + j) % 2 == 0);
 	ret.close(closed);
 	return ret;
 };

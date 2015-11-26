@@ -29,7 +29,7 @@
   var canvas = document.getElementById('myCanvas');
 	
 	var blobRadius = 8;
-	var timerDelay = 10;
+	var timerDelay = 100;
 	
  	var selectedX = 0;
 	var selectedY = 0;
@@ -47,7 +47,7 @@
 	const CFOCUSED = 2;
 	const GAMELIFE = 3;
 	
-	var useMethod = 3;
+	var useMethod = GAMELIFE;
 	/** 2, 3, 3 for the classic square grid **/
   /** 1.5, 2.25, 2 for a non convergent situation **/
 	var starvationLimit = 2;
@@ -106,42 +106,43 @@
 		if ((selectedCell.x == selectedX) && (selectedCell.y == selectedY))
 			return;
 
-/*		document.getElementById("selectedX").innerHTML = selectedX.toString();
-		document.getElementById("selectedY").innerHTML = selectedY.toString();
-		document.getElementById("clickedColour").innerHTML = HexagonalMap.getMapColorAt(selectedX, selectedY);
-		document.getElementById("neighbours").innerHTML = HexagonalMap.getNeighbours(selectedX, selectedY);
-*/		
 		if (HexagonalMap.contains(selectedCell.x, selectedCell.y)){
-			HexagonalMap.setMapColorAt(selectedCell.x, selectedCell.y, selectedCell.color);
-    		HexagonalMap.drawCell(selectedCell.x, selectedCell.y);
+			//HexagonalMap.setMapColorAt(selectedCell.x, selectedCell.y, selectedCell.color);
+			HexagonalMap.setHoveredAt(selectedCell.x, selectedCell.y, false);
+    		HexagonalMap.drawCellContour(selectedCell.x, selectedCell.y);
     	}
     	if (HexagonalMap.contains(selectedX, selectedY)){
     		selectedCell.x = selectedX;
     		selectedCell.y = selectedY;
-			selectedCell.color = HexagonalMap.getMapColorAt(selectedX, selectedY);
-			HexagonalMap.setMapColorAt(selectedX, selectedY, hoverColor);
-    		HexagonalMap.drawCell(selectedX, selectedY);
+			//selectedCell.color = HexagonalMap.getMapColorAt(selectedX, selectedY);
+			//HexagonalMap.setMapColorAt(selectedX, selectedY, hoverColor);
+			HexagonalMap.setHoveredAt(selectedCell.x, selectedCell.y, true);
+    		HexagonalMap.drawCellContour(selectedX, selectedY);
     	}
       }, false);
 
 
-	function applyMapChanges(arrayOfColors) {
-								switch (useMethod){
-																case ABSOLUTE: return ColorTransform.classicAverage(arrayOfColors); 
-																case SEPARATE: return ColorTransform.separateAverage(arrayOfColors);
-																case CFOCUSED: return ColorTransform.centerFocusedAverage(arrayOfColors);
-																case GAMELIFE: return ColorTransform.gameOfLife(arrayOfColors);
-																case CONSENSUS: return ColorTransform.consensusAverage(arrayOfColors);
-																default: return ColorTransform.gameOfLife(arrayOfColors);
-								}
-	}
+  function applyMapChanges(arrayOfColors) {
+	  switch (useMethod) {
+		  case ABSOLUTE:
+			  return ColorTransform.classicAverage(arrayOfColors);
+		  case SEPARATE:
+			  return ColorTransform.separateAverage(arrayOfColors);
+		  case CFOCUSED:
+			  return ColorTransform.centerFocusedAverage(arrayOfColors);
+		  case GAMELIFE:
+			  return ColorTransform.gameOfLife(arrayOfColors);
+		  default:
+			  return ColorTransform.gameOfLife(arrayOfColors);
+	  }
+  }
 
 	function initColors() {
 				HexagonalMap.placeColor(Math.floor(MSizeX / 3), Math.floor(MSizeY / 3), blobRadius/2, "#2244FF" );
 				HexagonalMap.placeColor(Math.floor(2 * MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius/2, "#FF4422" );
 				HexagonalMap.placeColor(Math.floor(2 * MSizeX / 3), Math.floor(MSizeY / 3), blobRadius/2, "#22FF00" );
 				HexagonalMap.placeColor(Math.floor(MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius/2, "#AF04A2" );	
-				HexagonalMap.placeColor(Math.floor(MSizeX / 2), Math.floor(MSizeY / 2), blobRadius / 1, "#11A1F1" );
+				HexagonalMap.placeColor(Math.floor(MSizeX / 2), Math.floor(MSizeY / 2), blobRadius / 2, "#11A1F1" );
 
 /*				placeColor(Math.floor(MSizeX / 3), Math.floor(MSizeY / 3), blobRadius, "#00FF00" );
 				placeColor(Math.floor(2 * MSizeX / 3), Math.floor(2 * MSizeY / 3), blobRadius, "#00FF00" );
@@ -167,7 +168,7 @@
 				for (var i = 0; i < MSizeX; i++){
 								for (var j = 0; j < MSizeY; j++){
 												var arrayOfColors = HexagonalMap.getNeighbours(i, j);
-												newMap[i][j] = applyMapChanges(arrayOfColors);
+												newMap[i][j] = HexCell.createCell(applyMapChanges(arrayOfColors), HexagonalMap.getVal(i, j).visible);
 								}
 				}
 				HexagonalMap.Map = newMap;
