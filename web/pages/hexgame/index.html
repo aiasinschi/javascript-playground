@@ -2,9 +2,13 @@
 <html>
 <head>
 	<script type="text/javascript" src="../../library/hex.utils.js"></script>
-	<script type="text/javascript" src="../../library/hexagonal.map.js"></script>
 	<script type="text/javascript" src="../../library/color.transform.js"></script>
+	<script type="text/javascript" src="../../library/game/hexagonal.map.js"></script>
+	<script type="text/javascript" src="../../library/game/game.unit.js"></script>
+	<script type="text/javascript" src="../../library/game/game.constants.js"></script>
 
+	<script type="text/javascript" src="../../library/app.constants.js"></script>
+	<script type="text/javascript" src="../../library/geom.point.js"></script>
 </head>
 <body>
 <div class="canvas">
@@ -23,7 +27,10 @@
 	<div>Neigbours:
 		<div id="neighbours"></div>
 	</div>
+	<div id="resources">
+		<img src="../../images/hiker.png" id="explorerImg" hidden/>
+	</div>
 </div>
-<script type="text/javascript" src="../../library/hexgame.js"></script>
+<script type="text/javascript" src="../../library/game/hexgame.js"></script>
 </body>
 </html>

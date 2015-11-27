@@ -31,5 +31,12 @@ var Point = Point
 			ret.x = x;
 			ret.y = y;
 			return ret;
+		},
+
+		translate: function(dx, dy){
+			return Point.createPoint(
+				this.x + dx,
+				this.y + dy
+			);
 		}
 	};

@@ -232,14 +232,6 @@ HexagonalMap.drawCellContour = function (cx, cy) {
 	drawHex(context, P.x, P.y, radius, HexagonalMap.Map[cx][cy], false);
 }
 
-/*function drawMap(sizex, sizey){
- for (var x=0;x<sizex;x++){
- for (var y=0;y<sizey;y++){
- drawCell(x,y);
- }
- }
- }*/
-
 function rand(n) {
 	return Math.floor(Math.random() * n);
 }
