@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="../../library/app.constants.js" ></script>
+	<script src="../../library/geom.point.js" ></script>
+	<script src="../../library/geom.curves.js" ></script>
+	<script src="../../library/geom.gear.js" ></script>
+	<script src="../../library/hex.utils.js" ></script>
+</head>
+<body>
+<label for="movingCurvesSelect">Select curve</label>
+<select id='movingCurvesSelect'>
+	<option value="0">Circle</option>
+	<option value="1">Waved Circle</option>
+	<option value="2">Reverse cardioid</option>
+	<option value="3">Astroid</option>
+</select>
+<button onclick="drawMovingCurves();">Draw Moving Curves</button>
+<br/><br/>
+<canvas id='canvas' width=700 height=700 style='background-color: #00020F; border:5px solid #000107; border-radius: 10px;'></canvas>
+</body>
+</html>

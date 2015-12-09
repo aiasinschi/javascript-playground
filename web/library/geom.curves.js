@@ -34,6 +34,13 @@ var circleFunction = function(center, radius, t){
 	return Point.createPoint(center.x + radius * Math.cos(t), center.y + radius * Math.sin(t));
 }
 
+var wavedCircleFunction = function(center, radius, t){
+	return Point.createPoint(
+		center.x + (radius + radius * 0.15 * Math.sin(2 * 4 * t)) * Math.cos(t),
+		center.y + (radius + radius * 0.15 * Math.sin(2 * 4 * t)) * Math.sin(t)
+	);
+}
+
 var cardioidFunction = function(center, radius, t){
 	return Point.createPoint(
 		center.x + radius * ( Math.cos(t) - Math.cos(2 * t) / 2 ),
@@ -122,7 +129,56 @@ var drawParametricCurve = function(curveCalculator, center, initialRadius, initi
 		radius = radius - ApplicationConstants.STROKE_WIDTH / 4.5;
 		color = HexUtils.modifyByPercent(color, colorModifier / 6);
 	}
+};
+
+var moveOnParametricCurve = function (curveCalculator, center, initialRadius, initialColor, context, darken) {
+	var max_t = 2 * Math.PI;
+	var radius = initialRadius;
+	var ballRadius = 5;
+	var color = initialColor;
+	var dc = 4;
+	var increment = ballRadius * ApplicationConstants.STROKE_WIDTH / radius;
+	var t = 0;
+	var P = curveCalculator(center, radius, t);
+	var trajectory = [];
+	trajectory.push(P);
+	while (t < max_t) {
+		t += increment;
+		P = curveCalculator(center, radius, t);
+		trajectory.push(P);
+	}
+	animatePath(trajectory, 0, context, color, ballRadius);	
+	trajectory = [];
+	context.closePath();
+};
+
+var animatePath = function(trajectory, index, context, color, ballRadius){
+	if (index == trajectory.length - 1){
+		trajectory = [];
+		return;
+	}
+	setTimeout(function(){
+		var P = trajectory[index];
+		/*context.strokeWidth = context.strokeWidth + 2;
+		drawBall(P.getViewX(), P.getViewY(), ballRadius, context, '#00020F');
+		context.strokeWidth = context.strokeWidth - 2; */
+		context.clearRect(P.getViewX() - ballRadius - 2, P.getViewY() - ballRadius - 2, 
+			2 * ballRadius + 2 * ApplicationConstants.STROKE_WIDTH, 2 * ballRadius + 2 * ApplicationConstants.STROKE_WIDTH);
+			// draw
+		var newIndex = (index + 1) % trajectory.length;
+		P = trajectory[newIndex];
+		drawBall(P.getViewX(), P.getViewY(), ballRadius, context, color);
+		animatePath(trajectory, newIndex, context, color, ballRadius);
+	}, 40);
 }
+
+var drawBall = function(x, y, radius, context, color){
+	context.beginPath();
+	context.strokeStyle = color;
+	context.arc(x, y, radius, 0, 360);
+	context.stroke();
+	context.closePath();
+};
 
 var A = Point.createPoint(100, 100);
 var B = Point.createPoint(200, 200);
@@ -189,5 +245,35 @@ var drawCurves = function() {
 			drawParametricCurve(gearedBernoulliLemniscateFunction, O, 200, "#FD9F3A", context, true);
 			drawParametricCurve(gearedBernoulliLemniscateFunction, O, 100, "#FD9F5A", context, true);
 			break;
+		case 10:
+			drawParametricCurve(wavedCircleFunction, O, 200, '#3D4D9D', context, true);
 	}
-}
+};
+
+var drawMovingCurves = function() {
+	var canvas = document.getElementById("canvas");
+	var context = canvas.getContext("2d");
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.beginPath();
+	context.strokeStyle = '#FF9944';
+	context.lineWidth = ApplicationConstants.STROKE_WIDTH;
+	var side = ApplicationConstants.CIRCLE_RADIUS
+		* ApplicationConstants.SIDE_TO_RADIUS_RATIO;
+	var radius = ApplicationConstants.CIRCLE_RADIUS;
+	var drawingNumber = parseInt(document.getElementById('movingCurvesSelect').value);
+	var O = Point.createPoint(300, 300);
+	switch (drawingNumber) {
+		case 0:
+			moveOnParametricCurve(circleFunction, O, 100, "#1111FF", context, true);
+			break;
+		case 1:
+			moveOnParametricCurve(wavedCircleFunction, O, 100, "#1111FF", context, true);
+			break;
+		case 2:
+			moveOnParametricCurve(reverseCardioidFunction, O, 100, "#1111FF", context, true);
+			break;
+		case 3:
+			moveOnParametricCurve(astroidFunction, O, 100, "#1111FF", context, true);
+			break;
+	}
+};
