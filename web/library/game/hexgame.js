@@ -24,7 +24,7 @@ var drawAllUnits = function () {
 		var px = units[i].positionX;
 		var py = units[i].positionY;
 		cells.push([px, py]);
-		var ngbIdx = HexagonalMap.getNeighbourIndexes(px, py);
+		var ngbIdx = HexagonalMap.getExtendedNeighbourIndexes(px, py, 2);
 		for (var k = 0; k < ngbIdx.length; k++) {
 			if (HexagonalMap.contains(ngbIdx[k][0], ngbIdx[k][1])) {
 				cells.push([ngbIdx[k][0], ngbIdx[k][1]]);

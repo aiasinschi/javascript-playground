@@ -213,6 +213,24 @@ HexagonalMap.getNeighbourIndexes = function (i, j) {
 	return arrayOfIndexes;
 }
 
+HexagonalMap.getExtendedNeighbourIndexes = function(i, j, level){
+    if (level == 0){
+        return [[i, j]];
+    } else {
+        var prevNeighbours = HexagonalMap.getExtendedNeighbourIndexes(i, j, level - 1);
+        var newNeighb = PairSet.create(prevNeighbours);
+        var addition = [];
+        for (var k = 0; k < prevNeighbours.length; k++){
+            addition = HexagonalMap.getNeighbourIndexes(
+                prevNeighbours[k][0], prevNeighbours[k][1]);
+            for (var n = 0; n < addition.length; n++){
+                newNeighb.add(addition[n]);
+            }
+        }
+        return newNeighb.elem;
+    }
+}
+
 HexagonalMap.getNeighbours = function (i, j) {
 	var arrayOfColors = [];
 	var Map = HexagonalMap.Map;

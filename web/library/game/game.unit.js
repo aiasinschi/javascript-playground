@@ -48,7 +48,7 @@ var Unit = Unit || {
 
 		reveal: function (HexaMap) {
 			HexaMap.getVal(this.positionX, this.positionY).visible = true;
-			var indexes = HexaMap.getNeighbourIndexes(this.positionX, this.positionY);
+			var indexes = HexaMap.getExtendedNeighbourIndexes(this.positionX, this.positionY, 2);
 			for (var i = 0; i < indexes.length; i++) {
 				if (HexaMap.contains(indexes[i][0], indexes[i][1])) {
 					HexaMap.getVal(indexes[i][0], indexes[i][1]).visible = true;
