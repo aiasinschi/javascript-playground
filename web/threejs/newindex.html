@@ -30,41 +30,52 @@
 	var plane, cube;
 	var mouse, raycaster, isShiftDown = false;
 
-	var edgeSize = 150;
+	var edgeSize = 300;
+    var baseSpread = edgeSize * edgeSize / 20;
 
 	var rollOverMesh, rollOverMaterial;
 	var cubeGeo, cubeMaterial;
 
 	var objects = [];
 
-	function heightMap(x, z){
-		var height = [edgeSize / 2, edgeSize / 3, edgeSize / 4, edgeSize / 5];
-		var baseSpread = edgeSize * edgeSize / 20;
-		var spread = [baseSpread * 1, baseSpread * 0.8, baseSpread * 0.9, baseSpread * 1.1];
-		var xbias = [0, - edgeSize / 5, edgeSize / 5, edgeSize / 5];
-		var zbias = [0, - edgeSize / 3, edgeSize / 2, - edgeSize / 2];
+
+
+    var hillOptions = {
+        height: [edgeSize / 2.5, edgeSize / 3, edgeSize / 4, edgeSize / 5, edgeSize / 4, edgeSize / 7],
+        spread: [baseSpread * 1, baseSpread * 0.8, baseSpread * 0.9, baseSpread * 1.1, baseSpread * 1.5, baseSpread],
+        xbias: [0, - edgeSize / 5, edgeSize / 5, edgeSize / 5, - edgeSize / 3, edgeSize / 2],
+        zbias: [0, - edgeSize / 3, edgeSize / 2, - edgeSize / 2, edgeSize / 4,  -0.1 * edgeSize / 2]
+    };
+    var mountainOptions = {
+        height: [edgeSize / 1.5, edgeSize / 2, edgeSize / 2, edgeSize / 3, edgeSize / 3, edgeSize / 7],
+        spread: [baseSpread * 0.5, baseSpread * 0.7, baseSpread * 0.3, baseSpread * 0.6, baseSpread * 0.5, baseSpread],
+        xbias: [0, - edgeSize / 5, edgeSize / 5, edgeSize / 5, - edgeSize / 3, edgeSize / 2],
+        zbias: [0, - edgeSize / 3, edgeSize / 2, - edgeSize / 2, edgeSize / 4,  -0.1 * edgeSize / 2]
+    };
+
+	function heightMap(x, z, options){
 		var y = 0;
-		for (var i = 0; i < height.length; i++){
-			y += height[i] *  Math.exp ( (- (x - xbias[i]) * (x - xbias[i]) - (z - zbias[i]) * (z - zbias[i]) ) / spread[i]);
+		for (var i = 0; i < options.height.length; i++){
+			y += options.height[i] *  Math.exp ( (- (x - options.xbias[i]) * (x - options.xbias[i]) - (z - options.zbias[i]) * (z - options.zbias[i]) ) / options.spread[i]);
 		}
 		return y;
 	}
 
-	function initHexInnerTriangle(hexagon, node0, node1, node2, level){
+	function initHexInnerTriangle(hexagon, node0, node1, node2, level, options){
 		if (level > 0){
 			var m01x =  (node0.x + node1.x) / 2;
 			var m01z = (node0.z + node1.z) / 2;
-			var node01 = new THREE.Vector3(m01x, heightMap(m01x, m01z), m01z);
+			var node01 = new THREE.Vector3(m01x, heightMap(m01x, m01z, options), m01z);
 			var m12x = (node1.x + node2.x) / 2;
 			var m12z = (node1.z + node2.z) / 2;
-			var node12 = new THREE.Vector3(m12x, heightMap(m12x, m12z), m12z);
+			var node12 = new THREE.Vector3(m12x, heightMap(m12x, m12z, options), m12z);
 			var m20x = (node2.x + node0.x) / 2;
 			var m20z = (node2.z + node0.z) / 2;
-			var node20 = new THREE.Vector3( m20x, heightMap(m20x, m20z), m20z);
-			initHexInnerTriangle(hexagon, node0, node01, node20, level - 1);
-			initHexInnerTriangle(hexagon, node01, node1, node12, level - 1);
-			initHexInnerTriangle(hexagon, node20, node12, node2, level - 1);
-			initHexInnerTriangle(hexagon, node20, node01, node12, level - 1);
+			var node20 = new THREE.Vector3( m20x, heightMap(m20x, m20z, options), m20z);
+			initHexInnerTriangle(hexagon, node0, node01, node20, level - 1, options);
+			initHexInnerTriangle(hexagon, node01, node1, node12, level - 1, options);
+			initHexInnerTriangle(hexagon, node20, node12, node2, level - 1, options);
+			initHexInnerTriangle(hexagon, node20, node01, node12, level - 1, options);
 		} else {
 			var first = hexagon.vertices.length;
 			hexagon.vertices.push(node0);
@@ -75,23 +86,23 @@
 		}
 	}
 
-	function initHexCell(){
+	function initHexCellTerrain(options){
 		var hexagon = new THREE.Geometry();
 		var angleStep = Math.PI / 3;
 		var radius = edgeSize;
 		var corners = [];
-		corners.push(new THREE.Vector3(0, heightMap(0, 0), 0));
+		corners.push(new THREE.Vector3(0, heightMap(0, 0, options), 0));
 		for (var i = 0; i < 6; i++){
 			// bottom
 			corners.push(
 					new THREE.Vector3(
 							radius * Math.cos(i * angleStep),
-							heightMap(radius * Math.cos(i * angleStep), radius * Math.sin(i * angleStep)),
+							heightMap(radius * Math.cos(i * angleStep), radius * Math.sin(i * angleStep), options),
 							radius * Math.sin(i * angleStep))
 			);
 		}
 		for (var i = 1; i <= 6; i++){
-			initHexInnerTriangle(hexagon, corners[i], corners[0], corners[i % 6 + 1], 6);
+			initHexInnerTriangle(hexagon, corners[i], corners[0], corners[i % 6 + 1], 5, options);
 		}
 
 		hexagon.computeFaceNormals();
@@ -155,15 +166,16 @@
 		scene.add( line );
 		var radius = edgeSize;
 
-		var newHexVox = new THREE.Mesh(initHexCell(), new THREE.MeshLambertMaterial( { color: 0x8E970C, shading: THREE.FlatShading, map: THREE.ImageUtils.loadTexture( "textures/grass.jpg" ) } ));
+		var hillCOlor = 0x40370C;
+		var newHexVox = new THREE.Mesh(initHexCellTerrain(hillOptions), new THREE.MeshLambertMaterial( { color: hillCOlor, shading: THREE.FlatShading } ));
 		/*newHexVox.translateX(radius + radius * Math.sqrt(3) / 4);
 		newHexVox.translateZ(radius * Math.sqrt(3) / 2);*/
 		scene.add(newHexVox);
-		newHexVox = new THREE.Mesh(initHexCell(), new THREE.MeshLambertMaterial( { color: 0x8E970C, shading: THREE.FlatShading, map: THREE.ImageUtils.loadTexture( "textures/grass.jpg" ) } ));
+		newHexVox = new THREE.Mesh(initHexCellTerrain(mountainOptions), new THREE.MeshLambertMaterial( { color: hillCOlor, shading: THREE.FlatShading } ));
 		newHexVox.translateX(radius + radius * Math.sqrt(3) / 4);
     	newHexVox.translateZ(radius * Math.sqrt(3) / 2);
 		scene.add(newHexVox);
-		newHexVox = new THREE.Mesh(initHexCell(), new THREE.MeshLambertMaterial( { color: 0x8E970C, shading: THREE.FlatShading, map: THREE.ImageUtils.loadTexture( "textures/grass.jpg" ) } ));
+		newHexVox = new THREE.Mesh(initHexCellTerrain(hillOptions), new THREE.MeshLambertMaterial( { color: hillCOlor, shading: THREE.FlatShading } ));
 		newHexVox.translateX(radius + radius * Math.sqrt(3) / 4);
 		newHexVox.translateZ(- radius * Math.sqrt(3) / 2);
 		scene.add(newHexVox);
